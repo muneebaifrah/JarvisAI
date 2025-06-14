@@ -2,117 +2,126 @@ import speech_recognition as sr
 import os
 import webbrowser
 import openai
-from config import apikey
 import datetime
 import random
-import numpy as np
+import pyttsx3
+from config import apikey
 
+# Setup for text-to-speech
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)
 
 chatStr = ""
-# https://youtu.be/Z3ZAJoi4x6Q
+
+def say(text):
+    print(f"\nJarvis says: {text}")
+    engine.say(text)
+    engine.runAndWait()
+
 def chat(query):
     global chatStr
-    print(chatStr)
     openai.api_key = apikey
-    chatStr += f"Harry: {query}\n Jarvis: "
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt= chatStr,
-        temperature=0.7,
-        max_tokens=256,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
-    # todo: Wrap this inside of a  try catch block
-    say(response["choices"][0]["text"])
-    chatStr += f"{response['choices'][0]['text']}\n"
-    return response["choices"][0]["text"]
-
+    chatStr += f"Ifrah: {query}\nJarvis: "
+    try:
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=chatStr,
+            temperature=0.7,
+            max_tokens=256,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0
+        )
+        output = response["choices"][0]["text"].strip()
+        say(output)
+        chatStr += f"{output}\n"
+        return output
+    except Exception as e:
+        say("Sorry, I couldn't process that.")
+        print("OpenAI Error:", e)
+        return ""
 
 def ai(prompt):
     openai.api_key = apikey
-    text = f"OpenAI response for Prompt: {prompt} \n *************************\n\n"
-
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=prompt,
-        temperature=0.7,
-        max_tokens=256,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
-    # todo: Wrap this inside of a  try catch block
-    # print(response["choices"][0]["text"])
-    text += response["choices"][0]["text"]
-    if not os.path.exists("Openai"):
-        os.mkdir("Openai")
-
-    # with open(f"Openai/prompt- {random.randint(1, 2343434356)}", "w") as f:
-    with open(f"Openai/{''.join(prompt.split('intelligence')[1:]).strip() }.txt", "w") as f:
-        f.write(text)
-
-def say(text):
-    os.system(f'say "{text}"')
+    try:
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=prompt,
+            temperature=0.7,
+            max_tokens=256
+        )
+        text = response["choices"][0]["text"].strip()
+        if not os.path.exists("Openai"):
+            os.mkdir("Openai")
+        filename = f"Openai/response-{random.randint(1, 99999)}.txt"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(f"Prompt:\n{prompt}\n\nResponse:\n{text}")
+        say("AI response saved successfully.")
+    except Exception as e:
+        say("Error saving AI response.")
+        print("AI Save Error:", e)
 
 def takeCommand():
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        # r.pause_threshold =  0.6
-        audio = r.listen(source)
+        r.pause_threshold = 1
+        r.energy_threshold = 300
+        say("Listening...")
         try:
-            print("Recognizing...")
+            audio = r.listen(source, timeout=10, phrase_time_limit=15)
+            say("Recognizing...")
             query = r.recognize_google(audio, language="en-in")
-            print(f"User said: {query}")
+            print(f"You said: {query}")
             return query
+        except sr.WaitTimeoutError:
+            say("Listening timed out.")
+            return ""
+        except sr.UnknownValueError:
+            say("Sorry, I didn't catch that.")
+            return ""
         except Exception as e:
-            return "Some Error Occurred. Sorry from Jarvis"
+            say("Microphone error.")
+            print("Microphone Error:", e)
+            return ""
 
 if __name__ == '__main__':
-    print('Welcome to Jarvis A.I')
-    say("Jarvis A.I")
+    say("Jarvis A.I is now online.")
+    print("Welcome to Jarvis A.I")
+
     while True:
-        print("Listening...")
-        query = takeCommand()
-        # todo: Add more sites
-        sites = [["youtube", "https://www.youtube.com"], ["wikipedia", "https://www.wikipedia.com"], ["google", "https://www.google.com"],]
-        for site in sites:
-            if f"Open {site[0]}".lower() in query.lower():
-                say(f"Opening {site[0]} sir...")
-                webbrowser.open(site[1])
-        # todo: Add a feature to play a specific song
-        if "open music" in query:
-            musicPath = "/Users/harry/Downloads/downfall-21371.mp3"
-            os.system(f"open {musicPath}")
+        query = takeCommand().lower()
+
+        if "open youtube" in query:
+            say("Opening YouTube...")
+            webbrowser.open("https://www.youtube.com")
+
+        elif "open wikipedia" in query:
+            say("Opening Wikipedia...")
+            webbrowser.open("https://www.wikipedia.org")
+
+        elif "open google" in query:
+            say("Opening Google...")
+            webbrowser.open("https://www.google.com")
+
+        elif "open music" in query:
+            say("Playing music online...")
+            webbrowser.open("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
 
         elif "the time" in query:
-            musicPath = "/Users/harry/Downloads/downfall-21371.mp3"
-            hour = datetime.datetime.now().strftime("%H")
-            min = datetime.datetime.now().strftime("%M")
-            say(f"Sir time is {hour} bajke {min} minutes")
+            now = datetime.datetime.now()
+            time_str = now.strftime("%H bajke %M minutes")
+            say(f"The time is {time_str}.")
 
-        elif "open facetime".lower() in query.lower():
-            os.system(f"open /System/Applications/FaceTime.app")
-
-        elif "open pass".lower() in query.lower():
-            os.system(f"open /Applications/Passky.app")
-
-        elif "Using artificial intelligence".lower() in query.lower():
+        elif "using ai" in query or "using artificial intelligence" in query:
             ai(prompt=query)
 
-        elif "Jarvis Quit".lower() in query.lower():
-            exit()
+        elif "end program" in query or "exit" in query or "stop" in query:
+            say("Goodbye sir!")
+            break
 
-        elif "reset chat".lower() in query.lower():
+        elif "reset" in query:
             chatStr = ""
+            say("Chat reset successfully.")
 
-        else:
-            print("Chatting...")
+        elif query.strip() != "":
             chat(query)
-
-
-
-
-
-        # say(query)
