@@ -53,6 +53,9 @@ bash
 python main.py
 
 
+TO RUN: https://muneebaifrah.github.io/JarvisAI
+
+
 🙌 Credits
 Inspired by CodeWithHarry and enhanced for educational purposes.
 
