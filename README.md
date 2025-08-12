@@ -1,20 +1,23 @@
+
 # 🤖 JarvisAI
 
-JarvisAI is a **Python-based AI assistant** that can run both **locally** (with voice features) and on **Vercel** (as an API).  
+JarvisAI is a **Python-based AI assistant** that can run both **locally** (as an interactive script) and on **Vercel** (as an API).  
 It uses **OpenAI's GPT model** to generate intelligent responses.
 
 ---
 
 ## 🚀 Features
 
-### **Local Mode**
-- 🎤 **Voice recognition** (Speech-to-Text)  
-- 🎧 **Text-to-Speech replies**  
-- 💬 **GPT-powered chat with memory**
+### **Local Mode (Standalone Script)**
+- 💬 **Interactive command-line AI assistant**  
+- 📝 **Chat with memory and command processing**  
+- 💾 **Save AI responses to files**  
+- ⏰ **Get current time and other commands**  
+- 🔄 **Reset chat or exit anytime**
 
 ### **Vercel API Mode**
-- 🌐 **Serverless API** deployment  
-- 🔑 **Secure API key handling**  
+- 🌐 **Serverless API deployment**  
+- 🔑 **Secure API key handling via environment variables**  
 - 🧩 Can integrate with **web apps or chat UIs**
 
 ---
@@ -25,6 +28,7 @@ It uses **OpenAI's GPT model** to generate intelligent responses.
 JarvisAI/
 ├── api/
 │   └── index.py          # Vercel API endpoint
+├── main.py               # Standalone local interactive script
 ├── requirements.txt      # Python dependencies
 ├── vercel.json           # Vercel deployment configuration
 └── README.md             # Project documentation
@@ -32,10 +36,7 @@ JarvisAI/
 
 ---
 
-## 🛠 Local Setup (Voice Assistant)
-
-> **Note:** Local mode includes voice commands and text-to-speech.  
-> Requires a microphone and speakers.
+## 🛠 Local Setup (Interactive Script)
 
 ### **1️⃣ Clone the Repository**
 ```bash
@@ -47,6 +48,7 @@ cd JarvisAI
 ```bash
 python -m venv venv
 ```
+
 **Activate it:**
 ```bash
 # macOS/Linux
@@ -75,7 +77,7 @@ python main.py
 
 ## 🌐 Deploy to Vercel (API Mode)
 
-> **Tip:** API mode does not use microphone or TTS. It's made for web integrations.
+> **Note:** API mode does not include voice or interactive CLI. It exposes a serverless HTTP API.
 
 ### **1️⃣ Login to Vercel**
 ```bash
@@ -94,15 +96,16 @@ vercel env add OPENAI_API_KEY
 
 ### **4️⃣ Access Your API**
 ```
-https://your-vercel-project.vercel.app/api
+https://your-vercel-project.vercel.app/api/jarvis
 ```
 
 ---
 
 ## ⚠️ Notes
-- `api/index.py` → for Vercel API only  
-- `main.py` → for running locally with voice features (not deployed)  
-- **Never commit** `.env` or `config.py` to GitHub
+- `api/index.py` → Vercel API backend code  
+- `main.py` → local interactive script (not deployed)  
+- **Never commit** `.env` or secrets to GitHub  
+- Use environment variables to keep API keys safe
 
 ---
 
