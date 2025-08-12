@@ -1,27 +1,15 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
 import openai
 import os
 import datetime
 import random
-import webbrowser  # won't actually open in server environment, but we can log instead
 
-# Environment variable for API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
-
-app = FastAPI()
 chatStr = ""
 
-# Request schema
-class Command(BaseModel):
-    query: str
-
-# Helper: AI speak (just return text instead of pyttsx3)
 def say(text):
     print(f"Jarvis says: {text}")
     return text
 
-# Chat function
 def chat(query):
     global chatStr
     chatStr += f"Ifrah: {query}\nJarvis: "
@@ -39,7 +27,6 @@ def chat(query):
         print("OpenAI Error:", e)
         return say("Sorry, I couldn't process that.")
 
-# AI save-to-file function
 def ai(prompt):
     try:
         response = openai.Completion.create(
@@ -57,33 +44,37 @@ def ai(prompt):
         print("AI Save Error:", e)
         return say("Error saving AI response.")
 
-# API endpoint
-@app.post("/jarvis")
-def jarvis_command(cmd: Command):
-    query = cmd.query.lower()
-    
+def process_command(query):
+    query = query.lower()
+
     if "open youtube" in query:
-        return {"response": say("Opening YouTube...")}
+        return say("Opening YouTube... (functionality not implemented in script)")
     elif "open wikipedia" in query:
-        return {"response": say("Opening Wikipedia...")}
+        return say("Opening Wikipedia... (functionality not implemented in script)")
     elif "open google" in query:
-        return {"response": say("Opening Google...")}
+        return say("Opening Google... (functionality not implemented in script)")
     elif "open music" in query:
-        return {"response": say("Playing music online...")}
+        return say("Playing music online... (functionality not implemented in script)")
     elif "the time" in query:
         now = datetime.datetime.now()
         time_str = now.strftime("%H:%M")
-        return {"response": say(f"The time is {time_str}.")}
+        return say(f"The time is {time_str}.")
     elif "using ai" in query or "using artificial intelligence" in query:
-        return {"response": ai(prompt=query)}
+        return ai(prompt=query)
     elif "reset" in query:
         global chatStr
         chatStr = ""
-        return {"response": say("Chat reset successfully.")}
+        return say("Chat reset successfully.")
     elif "exit" in query or "stop" in query:
-        return {"response": say("Goodbye!")}
+        say("Goodbye!")
+        exit(0)
     elif query.strip() != "":
-        return {"response": chat(query)}
+        return chat(query)
     else:
-        return {"response": "No command detected."}
+        return say("No command detected.")
 
+if __name__ == "__main__":
+    print("Jarvis AI started. Type your commands (type 'exit' to quit).")
+    while True:
+        user_input = input("You: ")
+        process_command(user_input)
