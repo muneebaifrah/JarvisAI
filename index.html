@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JarvisAI - Free Web Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .jarvis-message {
+            background: white;
+            color: #333;
+            border: 2px solid #e9ecef;
+            margin-right: auto;
+        }
+
+        .jarvis-message::before {
+            content: "🤖 ";
+            font-size: 1.2em;
+        }
+
+        .input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #4facfe;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .voice-btn {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .voice-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .commands-panel {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .command {
+            padding: 5px;
+            margin: 2px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .command:hover {
+            background-color: #f0f0f0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 15px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-indicator::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 JarvisAI</h1>
+            <p>Your Free AI Assistant - No APIs Required!</p>
+        </div>
+        
+        <div class="commands-panel">
+            <strong>Quick Commands:</strong><br>
+            <span class="command" onclick="sendCommand('time')">⏰ time</span>
+            <span class="command" onclick="sendCommand('date')">📅 date</span>
+            <span class="command" onclick="sendCommand('joke')">😄 joke</span>
+            <span class="command" onclick="sendCommand('quote')">💭 quote</span>
+            <span class="command" onclick="sendCommand('help')">❓ help</span>
+            <span class="command" onclick="sendCommand('calculate 2+2')">🔢 calculate</span>
+            <span class="command" onclick="sendCommand('system')">💻 system info</span>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message jarvis-message">
+                Hello! I'm Jarvis, your free AI assistant. I can help you with time, calculations, jokes, quotes, and more! Try typing a command or click the quick commands above.
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            Jarvis is thinking
+        </div>
+
+        <div class="input-container">
+            <button class="voice-btn" onclick="toggleVoice()" title="Voice Input">🎤</button>
+            <input type="text" class="input-field" id="messageInput" placeholder="Type your message here..." onkeypress="handleEnter(event)">
+            <button class="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        class JarvisWeb {
+            constructor() {
+                this.conversationHistory = [];
+                this.voiceEnabled = false;
+                this.recognition = null;
+                this.synth = window.speechSynthesis;
+                this.setupVoice();
+                
+                // Knowledge base
+                this.responses = {
+                    greeting: [
+                        "Hello! I'm Jarvis, your AI assistant. How can I help you today?",
+                        "Hi there! Ready to assist you with anything you need.",
+                        "Greetings! What can I do for you today?",
+                    ],
+                    farewell: [
+                        "Goodbye! Have a great day!",
+                        "See you later! Take care!",
+                        "Until next time! Stay awesome!",
+                    ],
+                    unknown: [
+                        "I'm not sure I understand. Could you rephrase that?",
+                        "That's an interesting question. Let me think about it differently.",
+                        "I don't have a specific answer for that, but I'm here to help however I can.",
+                    ]
+                };
+
+                this.jokes = [
+                    "Why don't scientists trust atoms? Because they make up everything!",
+                    "Why did the scarecrow win an award? He was outstanding in his field!",
+                    "Why don't eggs tell jokes? They'd crack each other up!",
+                    "What do you call a fake noodle? An impasta!",
+                    "Why did the coffee file a police report? It got mugged!",
+                ];
+
+                this.quotes = [
+                    "The only way to do great work is to love what you do. - Steve Jobs",
+                    "Innovation distinguishes between a leader and a follower. - Steve Jobs",
+                    "Life is what happens to you while you're busy making other plans. - John Lennon",
+                    "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
+                    "It is during our darkest moments that we must focus to see the light. - Aristotle",
+                ];
+            }
+
+            setupVoice() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = false;
+                    this.recognition.lang = 'en-US';
+
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        document.getElementById('messageInput').value = transcript;
+                        this.processMessage(transcript);
+                    };
+
+                    this.recognition.onerror = (event) => {
+                        console.log('Speech recognition error:', event.error);
+                    };
+                }
+            }
+
+            speak(text) {
+                if (this.voiceEnabled && this.synth) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.8;
+                    utterance.pitch = 1;
+                    this.synth.speak(utterance);
+                }
+            }
+
+            getTime() {
+                const now = new Date();
+                return `The current time is ${now.toLocaleTimeString()}`;
+            }
+
+            getDate() {
+                const now = new Date();
+                return `Today's date is ${now.toDateString()}`;
+            }
+
+            getJoke() {
+                return this.jokes[Math.floor(Math.random() * this.jokes.length)];
+            }
+
+            getQuote() {
+                return this.quotes[Math.floor(Math.random() * this.quotes.length)];
+            }
+
+            calculate(expression) {
+                try {
+                    // Basic security: only allow safe characters
+                    const allowedChars = /^[0-9+\-*/().,e\s]+$/;
+                    if (!allowedChars.test(expression)) {
+                        return "Invalid characters in expression";
+                    }
+                    
+                    const result = eval(expression);
+                    return `${expression} = ${result}`;
+                } catch (error) {
+                    return `Calculation error: ${error.message}`;
+                }
+            }
+
+            getSystemInfo() {
+                const info = {
+                    "User Agent": navigator.userAgent,
+                    "Platform": navigator.platform,
+                    "Language": navigator.language,
+                    "Online": navigator.onLine ? "Yes" : "No",
+                    "Screen Resolution": `${screen.width}x${screen.height}`,
+                    "Color Depth": `${screen.colorDepth} bits`,
+                    "Time Zone": Intl.DateTimeFormat().resolvedOptions().timeZone,
+                };
+                
+                let result = "System Information:\n";
+                for (const [key, value] of Object.entries(info)) {
+                    result += `${key}: ${value}\n`;
+                }
+                
+                return result;
+            }
+
+            showHelp() {
+                return `🤖 JarvisAI Commands:
+==================
+time - Get current time
+date - Get current date
+joke - Tell a joke
+quote - Get inspirational quote
+calculate [expression] - Perform calculation
+system - Show system info
+search [query] - Open web search
+weather - Get weather info
+help - Show this help
+
+🎤 Voice Commands:
+=================
+Click the microphone button to use voice input
+Say your commands naturally!`;
+            }
+
+            openSearch(query) {
+                const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                window.open(searchUrl, '_blank');
+                return `Opening web search for: ${query}`;
+            }
+
+            processMessage(input) {
+                const words = input.toLowerCase().trim().split(' ');
+                const command = words[0];
+                const args = words.slice(1).join(' ');
+
+                // Check for exit/clear commands
+                if (['exit', 'quit', 'bye', 'clear', 'reset'].includes(command)) {
+                    this.clearChat();
+                    return "Chat cleared! How can I help you?";
+                }
+
+                // Check for greetings
+                if (['hello', 'hi', 'hey', 'greetings'].includes(command)) {
+                    return this.getRandomResponse(this.responses.greeting);
+                }
+
+                // Process specific commands
+                switch (command) {
+                    case 'time':
+                        return this.getTime();
+                    case 'date':
+                        return this.getDate();
+                    case 'joke':
+                        return this.getJoke();
+                    case 'quote':
+                        return this.getQuote();
+                    case 'calculate':
+                    case 'calc':
+                        return args ? this.calculate(args) : "Please provide a mathematical expression";
+                    case 'system':
+                        return this.getSystemInfo();
+                    case 'help':
+                        return this.showHelp();
+                    case 'search':
+                        if (args) {
+                            return this.openSearch(args);
+                        } else {
+                            return "Please provide a search query";
+                        }
+                    case 'weather':
+                        return "Weather feature: You can check weather at weather.com or your local weather service!";
+                    case 'voice':
+                        this.toggleVoice();
+                        return `Voice mode ${this.voiceEnabled ? 'enabled' : 'disabled'}`;
+                    default:
+                        return this.generateResponse(input);
+                }
+            }
+
+            generateResponse(input) {
+                const inputLower = input.toLowerCase();
+                
+                // Question patterns
+                if (['what', 'how', 'why', 'when', 'where', 'who'].some(word => inputLower.includes(word))) {
+                    if (inputLower.includes('time')) {
+                        return this.getTime();
+                    } else if (inputLower.includes('date')) {
+                        return this.getDate();
+                    } else if (inputLower.includes('you') || inputLower.includes('jarvis')) {
+                        return "I'm Jarvis, your AI assistant. I'm here to help you with various tasks and questions!";
+                    } else {
+                        return "That's a great question! Try using specific commands like 'help' to see what I can do.";
+                    }
+                }
+
+                // Emotional responses
+                if (['thank', 'thanks', 'appreciate'].some(word => inputLower.includes(word))) {
+                    return "You're welcome! I'm glad I could help. Is there anything else you need?";
+                }
+
+                if (['good', 'great', 'awesome', 'amazing'].some(word => inputLower.includes(word))) {
+                    return "I'm glad to hear that! How else can I assist you today?";
+                }
+
+                // Math detection
+                if (/[\d+\-*/()=]/.test(input)) {
+                    return this.calculate(input);
+                }
+
+                // Default response
+                return this.getRandomResponse(this.responses.unknown);
+            }
+
+            getRandomResponse(responses) {
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+
+            addMessage(message, isUser = false) {
+                const chatContainer = document.getElementById('chatContainer');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${isUser ? 'user-message' : 'jarvis-message'}`;
+                messageDiv.textContent = message;
+                
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                // Add to history
+                this.conversationHistory.push({
+                    timestamp: new Date().toLocaleString(),
+                    message: message,
+                    isUser: isUser
+                });
+            }
+
+            showTyping() {
+                document.getElementById('typingIndicator').style.display = 'block';
+            }
+
+            hideTyping() {
+                document.getElementById('typingIndicator').style.display = 'none';
+            }
+
+            clearChat() {
+                document.getElementById('chatContainer').innerHTML = `
+                    <div class="message jarvis-message">
+                        Chat cleared! Hello again! I'm Jarvis, your free AI assistant. How can I help you today?
+                    </div>
+                `;
+                this.conversationHistory = [];
+            }
+
+            toggleVoice() {
+                this.voiceEnabled = !this.voiceEnabled;
+                const voiceBtn = document.querySelector('.voice-btn');
+                voiceBtn.style.background = this.voiceEnabled ? 
+                    'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)' : 
+                    'linear-gradient(135deg, #fa709a 0%, #fee140 100%)';
+                voiceBtn.textContent = this.voiceEnabled ? '🔊' : '🎤';
+                
+                return `Voice mode ${this.voiceEnabled ? 'enabled' : 'disabled'}`;
+            }
+
+            startVoiceRecognition() {
+                if (this.recognition) {
+                    this.recognition.start();
+                } else {
+                    alert('Voice recognition not supported in this browser');
+                }
+            }
+
+            async sendMessage(message = null) {
+                const input = message || document.getElementById('messageInput').value.trim();
+                if (!input) return;
+
+                // Add user message
+                this.addMessage(input, true);
+                
+                // Clear input
+                document.getElementById('messageInput').value = '';
+                
+                // Show typing indicator
+                this.showTyping();
+                
+                // Simulate thinking delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Process and get response
+                const response = this.processMessage(input);
+                
+                // Hide typing indicator
+                this.hideTyping();
+                
+                // Add Jarvis response
+                this.addMessage(response, false);
+                
+                // Speak response if voice is enabled
+                this.speak(response);
+            }
+        }
+
+        // Initialize Jarvis
+        const jarvis = new JarvisWeb();
+
+        // Global functions for HTML events
+        function sendMessage() {
+            jarvis.sendMessage();
+        }
+
+        function sendCommand(command) {
+            document.getElementById('messageInput').value = command;
+            jarvis.sendMessage(command);
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function toggleVoice() {
+            if (jarvis.voiceEnabled) {
+                jarvis.voiceEnabled = false;
+                document.querySelector('.voice-btn').textContent = '🎤';
+                document.querySelector('.voice-btn').style.background = 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)';
+            } else {
+                jarvis.startVoiceRecognition();
+            }
+        }
+
+        // Focus input on load
+        window.onload = function() {
+            document.getElementById('messageInput').focus();
+        };
+    </script>
+</body>
+</html>

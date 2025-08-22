@@ -1,0 +1,32 @@
+# JarvisAI Dependencies - Fixed and Updated for 2025
+# Core web framework
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# HTTP requests
+requests>=2.31.0
+
+# Wikipedia search (optional)
+wikipedia>=1.4.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Date/time handling
+python-dateutil>=2.8.2
+
+# Development dependencies (optional)
+pytest>=7.4.0
+
+# Optional: Voice capabilities (install only if needed)
+# Uncomment the following lines if you want voice features:
+# pyttsx3>=2.90
+# SpeechRecognition>=3.10.0
+
+# Note: For voice features on different systems:
+# Ubuntu/Debian: sudo apt-get install portaudio19-dev python3-pyaudio espeak-espeak-data
+# macOS: brew install portaudio
+# Windows: Usually works out of the box with pyttsx3
+
+# If you encounter issues with voice dependencies, you can skip them
+# The application will work fine without voice capabilities
